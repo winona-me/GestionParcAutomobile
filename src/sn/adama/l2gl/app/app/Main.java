@@ -5,7 +5,9 @@ import sn.adama.l2gl.app.service.ParcAutoService;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Main {
 
@@ -15,15 +17,15 @@ public class Main {
         // 1. CONSTRUCTION DE LA FLOTTE
         // ============================================================
 
-        Vehicule v1 = new Vehicule(1L, "AA-111-BB", "Toyota",  15000, EtatVehicule.DISPONIBLE,  2020);
-        Vehicule v2 = new Vehicule(2L, "CC-222-DD", "Renault", 80000, EtatVehicule.EN_PANNE,    2015);
+        Vehicule v1 = new Vehicule(1L, "AA-111-BB", "Toyota", 15000, EtatVehicule.DISPONIBLE, 2020);
+        Vehicule v2 = new Vehicule(2L, "CC-222-DD", "Renault", 80000, EtatVehicule.EN_PANNE, 2015);
         Vehicule v3 = new Vehicule(3L, "EE-333-FF", "Peugeot", 45000, EtatVehicule.EN_LOCATION, 2018);
-        Vehicule v4 = new Vehicule(4L, "GG-444-HH", "Honda",   95000, EtatVehicule.DISPONIBLE,  2012);
+        Vehicule v4 = new Vehicule(4L, "GG-444-HH", "Honda", 95000, EtatVehicule.DISPONIBLE, 2012);
 
-        Conducteur c1 = new Conducteur(1L, "Bah" ,"B-12345");
-        Conducteur c2 = new Conducteur(2L, "Zegbelemou","A-67890");
+        Conducteur c1 = new Conducteur(1L, "Bah", "B-12345");
+        Conducteur c2 = new Conducteur(2L, "Zegbelemou", "A-67890");
 
-        Entretien e1 = new Entretien(1L, v2, LocalDate.of(2025, 3, 10), "Vidange moteur",    25000);
+        Entretien e1 = new Entretien(1L, v2, LocalDate.of(2025, 3, 10), "Vidange moteur", 25000);
         Entretien e2 = new Entretien(2L, v4, LocalDate.of(2026, 1, 20), "Changement freins", 40000);
 
         Location l1 = new Location(1L, v3, c1, LocalDate.of(2025, 12, 1), 15000);
@@ -141,5 +143,148 @@ public class Main {
         service.trierVehicules(flotte, parImmat);
         System.out.println("Flotte triée par immatriculation :");
         flotte.forEach(v -> System.out.println("  " + v.getImmatriculation()));
+
+        // ============================================================
+        // ÉTAPE 7 — Unicité et equals/hashCode
+        // ============================================================
+        {
+            ParcAutoService service7 = new ParcAutoService();
+
+            Vehicule va = new Vehicule(1L, "AA-111-BB", "Toyota", 15000, EtatVehicule.DISPONIBLE, 2020);
+            Vehicule vb = new Vehicule(2L, "CC-222-DD", "Renault", 80000, EtatVehicule.EN_PANNE, 2015);
+            Vehicule vc = new Vehicule(3L, "AA-111-BB", "Honda", 5000, EtatVehicule.DISPONIBLE, 2022); // doublon !
+
+            service7.ajouterVehicule(va);
+            service7.ajouterVehicule(vb);
+
+            try {
+                service7.ajouterVehicule(vc);
+            } catch (IllegalArgumentException e) {
+                System.out.println("Doublon refusé : " + e.getMessage());
+            }
+
+            System.out.println("va.equals(vc) ? " + va.equals(vc));
+            System.out.println("hashCode égaux ? " + (va.hashCode() == vc.hashCode()));
+            System.out.println("Véhicules uniques : " + service7.vehiculesUniques().size());
+
+            Set<Vehicule> set = new HashSet<>();
+            set.add(va);
+            set.add(vb);
+            set.add(vc);
+            System.out.println("Set size (attendu 2) : " + set.size());
+        }
+
+        System.out.println("\n===== ÉTAPE 8 — Map<Long, List<Entretien>> =====");
+
+        {
+            ParcAutoService service8 = new ParcAutoService();
+
+            Vehicule va = new Vehicule(1L, "AA-111-BB", "Toyota", 15000, EtatVehicule.DISPONIBLE, 2020);
+            Vehicule vb = new Vehicule(2L, "CC-222-DD", "Renault", 80000, EtatVehicule.EN_PANNE, 2015);
+
+            service8.ajouterVehicule(va);
+            service8.ajouterVehicule(vb);
+
+            // 2 entretiens pour va
+            Entretien e4 = new Entretien(1L, va, LocalDate.of(2025, 1, 10), "Vidange moteur",    25000);
+            Entretien e5 = new Entretien(2L, va, LocalDate.of(2025, 6, 20), "Changement freins", 40000);
+
+            // 1 entretien pour vb
+            Entretien e6 = new Entretien(3L, vb, LocalDate.of(2025, 3, 5),  "Remplacement pneus", 30000);
+
+            service8.ajouterEntretien(e4);
+            service8.ajouterEntretien(e5);
+            service8.ajouterEntretien(e6);
+
+            // Entretiens de va (attendu : 2)
+            System.out.println("Entretiens de va (" + va.getImmatriculation() + ") :");
+            service8.getEntretiens(va.getId())
+                    .forEach(e -> System.out.println("  " + e.afficher()));
+
+            // Entretiens de vb (attendu : 1)
+            System.out.println("Entretiens de vb (" + vb.getImmatriculation() + ") :");
+            service8.getEntretiens(vb.getId())
+                    .forEach(e -> System.out.println("  " + e.afficher()));
+
+            // Véhicule sans entretien (attendu : liste vide, pas de crash !)
+            System.out.println("Entretiens de id=99 (attendu vide) :");
+            List<Entretien> vide = service8.getEntretiens(99L);
+            System.out.println("  Taille : " + vide.size()); // 0
+        }
+
+        System.out.println("\n===== ÉTAPE 9 — Streams =====");
+
+        {
+            ParcAutoService service9 = new ParcAutoService();
+
+            Vehicule va = new Vehicule(1L, "CC-333-AA", "Toyota",  15000, EtatVehicule.DISPONIBLE,  2020);
+            Vehicule vb = new Vehicule(2L, "AA-111-BB", "Renault", 80000, EtatVehicule.EN_PANNE,    2015);
+            Vehicule vc = new Vehicule(3L, "EE-555-CC", "Peugeot", 45000, EtatVehicule.DISPONIBLE,  2018);
+            Vehicule vd = new Vehicule(4L, "BB-222-DD", "Honda",   95000, EtatVehicule.EN_REVISION, 2012);
+            Vehicule ve = new Vehicule(5L, "DD-444-EE", "Kia",     60000, EtatVehicule.DISPONIBLE,  2019);
+
+            service9.ajouterVehicule(va);
+            service9.ajouterVehicule(vb);
+            service9.ajouterVehicule(vc);
+            service9.ajouterVehicule(vd);
+            service9.ajouterVehicule(ve);
+
+            // 1. Véhicules disponibles
+            System.out.println("Véhicules disponibles :");
+            service9.vehiculesDisponibles()
+                    .forEach(v -> System.out.println("  " + v.getImmatriculation()));
+
+            // 2. Immatriculations triées
+            System.out.println("Immatriculations triées :");
+            service9.immatriculationsTriees()
+                    .forEach(immat -> System.out.println("  " + immat));
+
+            // 3. Top 3 kilométrage
+            System.out.println("Top 3 kilométrage :");
+            service9.top3ParKilometrage()
+                    .forEach(v -> System.out.println("  " + v.getImmatriculation()
+                            + " — " + v.getKilometrage() + " km"));
+        }
+
+        System.out.println("\n===== ÉTAPE 10 — Statistiques et groupingBy =====");
+
+        {
+            ParcAutoService service10 = new ParcAutoService();
+
+            Vehicule va = new Vehicule(1L, "AA-111-BB", "Toyota",  15000, EtatVehicule.DISPONIBLE,  2020);
+            Vehicule vb = new Vehicule(2L, "CC-222-DD", "Renault", 80000, EtatVehicule.EN_PANNE,    2015);
+            Vehicule vc = new Vehicule(3L, "EE-333-FF", "Peugeot", 45000, EtatVehicule.DISPONIBLE,  2018);
+            Vehicule vd = new Vehicule(4L, "GG-444-HH", "Honda",   95000, EtatVehicule.EN_REVISION, 2012);
+            Vehicule ve = new Vehicule(5L, "II-555-JJ", "Kia",     60000, EtatVehicule.EN_LOCATION, 2019);
+
+            service10.ajouterVehicule(va);
+            service10.ajouterVehicule(vb);
+            service10.ajouterVehicule(vc);
+            service10.ajouterVehicule(vd);
+            service10.ajouterVehicule(ve);
+
+            // Entretiens
+            service10.ajouterEntretien(new Entretien(1L, va, LocalDate.of(2025, 1, 10), "Vidange",  20000));
+            service10.ajouterEntretien(new Entretien(2L, va, LocalDate.of(2025, 6, 20), "Freins",   35000));
+            service10.ajouterEntretien(new Entretien(3L, vb, LocalDate.of(2025, 3, 5),  "Pneus",    15000));
+            service10.ajouterEntretien(new Entretien(4L, vc, LocalDate.of(2025, 8, 12), "Courroie", 50000));
+
+            // 1. Kilométrage moyen
+            System.out.printf("Kilométrage moyen : %.2f km%n", service10.kilometrageMoyen());
+
+            // 2. Véhicules par état
+            System.out.println("\nVéhicules par état :");
+            service10.vehiculesParEtat()
+                    .forEach((etat, count) ->
+                            System.out.println("  " + etat + " : " + count + " véhicule(s)"));
+
+            // 3. Coûts d'entretien par véhicule
+            System.out.println("\nCoûts d'entretien par véhicule :");
+            service10.coutEntretiensParVehicule()
+                    .forEach((immat, total) ->
+                            System.out.println("  " + immat + " : " + total + " FCFA"));
+        }
     }
+
+
 }

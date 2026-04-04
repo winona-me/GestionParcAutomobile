@@ -116,3 +116,33 @@ faire" (quel test, quelle transformation). La méthode filtrerVehicules n'a jama
 d'être recopiée — on l'appelle avec des règles différentes à chaque fois. C'est le 
 principe Open/Closed : le code est ouvert à l'extension (nouvelles règles) mais fermé à
 la modification.
+
+Quel problème résout Map que List ne résout pas bien ?
+La List oblige à parcourir tous les éléments pour en trouver un — si tu 
+as 10 000 véhicules, tu fais 10 000 comparaisons dans le pire cas. La Map résout 
+ça avec un accès direct par clé en temps constant — peu importe si tu as 10 ou 
+10 000 véhicules, la recherche est toujours aussi rapide. C'est exactement comme un index en 
+base de données.
+
+Pourquoi retourner une liste vide plutôt que null ?
+Retourner null force chaque appelant à vérifier if (liste != null) 
+avant de l'utiliser — si on oublie une seule fois c'est un NullPointerException garanti.
+Une liste vide se comporte exactement comme une liste normale : size() retourne 0, forEach 
+ne fait rien, pas de crash. C'est le principe "Never return null for collections" — une 
+collection vide est toujours préférable à null.
+
+
+Quel est l'intérêt de séparer "source → opérations → résultat" ?
+Ce découpage rend chaque étape indépendante et lisible — on peut ajouter, retirer ou modifier 
+une opération sans toucher aux autres. C'est aussi plus expressif : on décrit ce qu'on veut 
+(filtrer les disponibles, trier, limiter) plutôt que comment le faire (boucles, conditions, 
+indices). Enfin les Streams sont paresseux — les opérations intermédiaires ne s'exécutent que 
+quand le résultat final est demandé, ce qui permet des optimisations automatiques.
+
+Pourquoi groupingBy est plus lisible qu'une Map manuelle ?
+Avec une Map manuelle on gère soi-même la création des clés, l'initialisation des valeurs 
+et les mises à jour — c'est du code technique qui cache l'intention. Avec groupingBy on 
+exprime directement ce qu'on veut : "groupe par état, compte les éléments". Le code devient 
+une description du besoin plutôt qu'une série d'instructions techniques. C'est aussi beaucoup 
+moins risqué — pas d'oubli d'initialisation, pas de NullPointerException.
+

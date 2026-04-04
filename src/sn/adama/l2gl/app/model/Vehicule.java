@@ -64,4 +64,23 @@ public class Vehicule extends Entite {
                 ", annee=" + annee +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        // 1. Même référence mémoire → forcément égaux
+        if (this == o) return true;
+
+        // 2. Null ou classe différente → pas égaux
+        if (o == null || getClass() != o.getClass()) return false;
+
+        // 3. On compare uniquement l'immatriculation (identité métier)
+        Vehicule vehicule = (Vehicule) o;
+        return immatriculation.equals(vehicule.immatriculation);
+    }
+
+    @Override
+    public int hashCode() {
+        // Le hashCode est basé uniquement sur l'immatriculation
+        return immatriculation.hashCode();
+    }
 }
