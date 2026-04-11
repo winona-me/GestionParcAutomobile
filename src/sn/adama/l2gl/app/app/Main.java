@@ -284,6 +284,60 @@ public class Main {
                     .forEach((immat, total) ->
                             System.out.println("  " + immat + " : " + total + " FCFA"));
         }
+
+        System.out.println("\n===== ETAPE 11 — Polymorphisme et afficher() =====");
+
+        {
+            // On met TOUS les objets dans une liste d'Entite
+            List<Entite> toutesLesEntites = new ArrayList<>();
+
+            Vehicule va = new Vehicule(1L, "AA-111-BB", "Toyota",  15000, EtatVehicule.DISPONIBLE, 2020);
+            Vehicule vb = new Vehicule(2L, "CC-222-DD", "Renault", 80000, EtatVehicule.EN_PANNE,   2015);
+
+            Conducteur ca = new Conducteur(1L, "Bah",         "B-12345");
+            Conducteur cb = new Conducteur(2L, "Zegbelemou",  "A-67890");
+
+            Entretien ea = new Entretien(1L, va, LocalDate.of(2025, 1, 10), "Vidange moteur",    25000);
+            Entretien eb = new Entretien(2L, vb, LocalDate.of(2025, 6, 20), "Changement freins", 40000);
+
+            Location la = new Location(1L, va, ca, LocalDate.of(2025, 12, 1), 15000);
+            la.terminer(LocalDate.of(2026, 2, 10));
+
+            // On ajoute tout dans la même liste !
+            toutesLesEntites.add(va);
+            toutesLesEntites.add(vb);
+            toutesLesEntites.add(ca);
+            toutesLesEntites.add(cb);
+            toutesLesEntites.add(ea);
+            toutesLesEntites.add(eb);
+            toutesLesEntites.add(la);
+
+            // Un seul appel afficher() → chaque objet sait comment s'afficher !
+            System.out.println("Toutes les entites du parc :");
+            toutesLesEntites.forEach(e -> System.out.println("  " + e.afficher()));
+
+            // Démo validation — messages explicites
+            System.out.println("\nTest validations :");
+            try {
+                new Vehicule(3L, "", "Toyota", 15000, EtatVehicule.DISPONIBLE, 2020);
+            } catch (IllegalArgumentException e) {
+                System.out.println("  " + e.getMessage());
+            }
+
+            try {
+                new Vehicule(4L, "ZZ-999-AA", "Toyota", -500, EtatVehicule.DISPONIBLE, 2020);
+            } catch (IllegalArgumentException e) {
+                System.out.println("  " + e.getMessage());
+            }
+
+            try {
+                new Entite(null) { // classe anonyme pour tester Entite directement
+                    public String afficher() { return "test"; }
+                };
+            } catch (IllegalArgumentException e) {
+                System.out.println("  " + e.getMessage());
+            }
+        }
     }
 
 

@@ -12,7 +12,7 @@ public class Vehicule extends Entite {
     public Vehicule(Long id, String immatriculation, String marque,
                     int kilometrage, EtatVehicule etat, int annee) {
 
-        super(id); // appel du constructeur de Entite
+        super(id);
 
         // Validations
         if (immatriculation == null || immatriculation.isBlank())

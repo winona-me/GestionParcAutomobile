@@ -146,3 +146,10 @@ exprime directement ce qu'on veut : "groupe par état, compte les éléments". L
 une description du besoin plutôt qu'une série d'instructions techniques. C'est aussi beaucoup 
 moins risqué — pas d'oubli d'initialisation, pas de NullPointerException.
 
+Pourquoi afficher() est abstraite au lieu d'être générique dans Entite ?
+Si afficher() était définie dans Entite, elle n'aurait accès qu'à id — elle ne pourrait pas
+afficher immatriculation, nom, cout... car ces attributs appartiennent aux sous-classes. En
+la rendant abstraite, on force chaque sous-classe à définir sa propre version avec ses propres
+attributs. C'est le principe du polymorphisme : une interface commune (afficher()), des 
+comportements différents selon le vrai type de l'objet.
+

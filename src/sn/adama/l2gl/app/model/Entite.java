@@ -14,6 +14,5 @@ public abstract class Entite implements Identifiable {
         return id;
     }
 
-    // Chaque sous-classe DOIT implémenter cette méthode
     public abstract String afficher();
 }
