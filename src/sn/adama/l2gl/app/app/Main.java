@@ -1,13 +1,11 @@
 package sn.adama.l2gl.app.app;
 
 import sn.adama.l2gl.app.model.*;
+import sn.adama.l2gl.app.repo.InMemoryCrud;
 import sn.adama.l2gl.app.service.ParcAutoService;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class Main {
 
@@ -337,6 +335,80 @@ public class Main {
             } catch (IllegalArgumentException e) {
                 System.out.println("  " + e.getMessage());
             }
+        }
+
+        System.out.println("\n===== ETAPE 12 — CRUD Generique =====");
+
+        {
+            // Un seul InMemoryCrud pour les véhicules
+            InMemoryCrud<Vehicule> vehiculeRepo = new InMemoryCrud<>();
+
+            // Un seul InMemoryCrud pour les conducteurs
+            InMemoryCrud<Conducteur> conducteurRepo = new InMemoryCrud<>();
+
+            Vehicule va = new Vehicule(1L, "AA-111-BB", "Toyota",  15000, EtatVehicule.DISPONIBLE, 2020);
+            Vehicule vb = new Vehicule(2L, "CC-222-DD", "Renault", 80000, EtatVehicule.EN_PANNE,   2015);
+            Vehicule vc = new Vehicule(3L, "EE-333-FF", "Peugeot", 45000, EtatVehicule.DISPONIBLE, 2018);
+
+            Conducteur ca = new Conducteur(1L, "Bah",        "B-12345");
+            Conducteur cb = new Conducteur(2L, "Zegbelemou", "A-67890");
+
+            // CREATE
+            System.out.println("--- CREATE ---");
+            vehiculeRepo.create(va);
+            vehiculeRepo.create(vb);
+            vehiculeRepo.create(vc);
+            conducteurRepo.create(ca);
+            conducteurRepo.create(cb);
+            System.out.println("Vehicules crees : " + vehiculeRepo.findAll().size());
+            System.out.println("Conducteurs crees : " + conducteurRepo.findAll().size());
+
+            // CREATE — doublon
+            try {
+                vehiculeRepo.create(va); // id=1 existe deja !
+            } catch (IllegalArgumentException e) {
+                System.out.println("Doublon refuse : " + e.getMessage());
+            }
+
+            // READ
+            System.out.println("\n--- READ ---");
+            Optional<Vehicule> trouve = vehiculeRepo.read(1L);
+            trouve.ifPresent(v -> System.out.println("Trouve : " + v.afficher()));
+
+            Optional<Vehicule> absent = vehiculeRepo.read(99L);
+            System.out.println("Id 99 present ? " + absent.isPresent()); // false
+
+            // UPDATE
+            System.out.println("\n--- UPDATE ---");
+            Vehicule vaModifie = new Vehicule(1L, "AA-111-BB", "Toyota", 20000, EtatVehicule.EN_REVISION, 2020);
+            vehiculeRepo.update(vaModifie);
+            vehiculeRepo.read(1L).ifPresent(v -> System.out.println("Apres update : " + v.afficher()));
+
+            // UPDATE — id inexistant
+            try {
+                vehiculeRepo.update(new Vehicule(99L, "ZZ-999-ZZ", "Kia", 5000, EtatVehicule.DISPONIBLE, 2022));
+            } catch (IllegalArgumentException e) {
+                System.out.println("Update refuse : " + e.getMessage());
+            }
+
+            // DELETE
+            System.out.println("\n--- DELETE ---");
+            System.out.println("Avant delete : " + vehiculeRepo.findAll().size() + " vehicules");
+            vehiculeRepo.delete(2L);
+            System.out.println("Apres delete : " + vehiculeRepo.findAll().size() + " vehicules");
+
+            // DELETE — id inexistant
+            try {
+                vehiculeRepo.delete(99L);
+            } catch (IllegalArgumentException e) {
+                System.out.println("Delete refuse : " + e.getMessage());
+            }
+
+            // FIND ALL
+            System.out.println("\n--- FIND ALL ---");
+            System.out.println("Tous les vehicules :");
+            vehiculeRepo.findAll()
+                    .forEach(v -> System.out.println("  " + v.afficher()));
         }
     }
 

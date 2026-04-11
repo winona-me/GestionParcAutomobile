@@ -153,3 +153,11 @@ la rendant abstraite, on force chaque sous-classe à définir sa propre version 
 attributs. C'est le principe du polymorphisme : une interface commune (afficher()), des 
 comportements différents selon le vrai type de l'objet.
 
+Que permet le CRUD générique qu'un repo spécifique ne permet pas ?
+Un repo spécifique (VehiculeRepo, ConducteurRepo...) oblige à réécrire exactement le même 
+code pour chaque classe — même logique, même structure, juste le type qui change. Le CRUD 
+générique InMemoryCrud<T> écrit cette logique une seule fois et fonctionne pour n'importe 
+quel type qui a un getId(). Si demain on ajoute une classe Assurance, il suffit d'écrire new 
+InMemoryCrud<Assurance>() — zéro code supplémentaire. C'est le principe DRY : Don't Repeat 
+Yourself.
+
