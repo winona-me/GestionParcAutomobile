@@ -161,3 +161,25 @@ quel type qui a un getId(). Si demain on ajoute une classe Assurance, il suffit 
 InMemoryCrud<Assurance>() — zéro code supplémentaire. C'est le principe DRY : Don't Repeat 
 Yourself.
 
+En quoi Optional force le développeur à traiter le cas absent ?
+Avec null, rien n'empêche d'écrire vehicule.getMarque() sans vérifier — le compilateur ne dit 
+rien et le crash arrive à l'exécution. Avec Optional, on ne peut pas accéder directement à la
+valeur — on est obligé de passer par orElse, orElseThrow ou ifPresent, ce qui force à définir 
+explicitement ce qui se passe si l'objet est absent. C'est une erreur impossible à ignorer par
+inadvertance.
+
+Pourquoi un record est adapté à un objet de rapport ?
+Un rapport est par nature en lecture seule — on ne modifie pas les données d'un rapport après 
+sa génération. Le record garantit cette immuabilité automatiquement sans effort. De plus il 
+génère toString() automatiquement ce qui est parfait pour l'affichage, et equals/hashCode pour
+comparer des lignes. C'est exactement ce dont on a besoin pour un DTO de reporting : léger, 
+immuable, lisible
+
+
+Quel choix de conception rend le projet le plus solide ?
+La combinaison Optional + enum + interfaces fonctionnelles est ce qui rend le projet le plus 
+robuste. Exemple concret : dans demarrerLocation(), on utilise Optional.orElseThrow() pour 
+garantir que le véhicule existe, puis l'enum EtatVehicule pour vérifier qu'il est DISPONIBLE 
+— impossible de louer un véhicule en panne par erreur. Enfin la règle de révision est injectée
+via une lambda Test<Vehicule> — on peut changer la règle sans toucher au service. Ces trois 
+mécanismes ensemble éliminent les null, les états invalides et le code dupliqué.

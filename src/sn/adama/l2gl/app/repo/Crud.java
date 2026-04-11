@@ -16,4 +16,6 @@ public interface Crud<T extends Identifiable> {
     void delete(Long id);
 
     List<T> findAll();
+
+    Optional<T> readOpt(Long id);
 }

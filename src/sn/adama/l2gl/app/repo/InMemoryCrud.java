@@ -68,4 +68,12 @@ public class InMemoryCrud<T extends Identifiable> implements Crud<T> {
     public List<T> findAll() {
         return new ArrayList<>(storage.values());
     }
+    // Dans InMemoryCrud.java — ajouter cette méthode
+    @Override
+    public Optional<T> readOpt(Long id) {
+        if (id == null)
+            throw new IllegalArgumentException("L'id ne peut pas être null");
+
+        return Optional.ofNullable(storage.get(id));
+    }
 }
